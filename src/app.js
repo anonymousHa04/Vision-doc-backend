@@ -1,9 +1,14 @@
 // express js boiler plate
 const express = require('express');
+const connectDB = require('./databases/mongoDB/config/db');
+
 const cors = require('cors');
 
 const app = express();
-// const PORT = process.env.PORT || 3000;
+
+// connect all Databases
+connectDB();
+
 
 app.use(cors());
 app.use(express.json());
