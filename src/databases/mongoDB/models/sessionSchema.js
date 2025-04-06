@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
-import { v4 as uuidv4 } from "uuid";
-import { info } from "../../../utilities/utilityFunctions";
+const { v4: uuidv4 } = require("uuid");
+const { info } = require("../../../utilities/utilityFunctions");
 
 // Define the session schema
 const sessionSchema = new Schema({
@@ -27,6 +27,7 @@ const sessionSchema = new Schema({
     duration: { // Duration of the session in milliseconds (optional)
         type: Number,
     },
+    status: { type: String, enum: ["active", "stopped"], default: "active" },
     screenShots: [{ // Array of screenshots taken during the session (optional)
         path: String,
         timestamp: Date,
@@ -62,4 +63,4 @@ sessionSchema.virtual("durationInMinutes").get(function () {
     return Math.round(this.duration / 60000);
 });
 
-export default Session;
+module.exports = mongoose.model("Session", sessionSchema);
