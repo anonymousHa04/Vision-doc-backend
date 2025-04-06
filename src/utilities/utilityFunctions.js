@@ -15,27 +15,36 @@ class Customlogger {
         };
     }
 
-    logMessage(message, color, status) {
+    logMessage(color, status, ...args) {
+        const message = args.join(' ');
         const colorCode = this.colors[color] || this.colors.white;
         const timestamp = new Date().toISOString();
-        process.stdout.write(`${colorCode}${status} ${colorCode}${timestamp}${this.colors.reset} - ${message} \n`);
+
+        const formattedMessage = `${colorCode}${status} ${colorCode}${timestamp}${this.colors.reset} - ${message}`;
+        
+        if (process.env.NODE_ENV !== "debug") {
+            console.log(formattedMessage);
+        } else {
+            console.debug(formattedMessage);
+        }
+        
         return;
     }
 
-    success(message) {
-        this.logMessage(message, "green", "success");
+    success(...args) {
+        this.logMessage("green", "success", ...args);
     }
 
-    error(message) {
-        this.logMessage(message, "red", "error");
+    error(...args) {
+        this.logMessage("red", "error", ...args);
     }
 
-    waring(message) {
-        this.logMessage(message, "yellow", "warning");
+    waring(...args) {
+        this.logMessage("yellow", "warning", ...args);
     }
 
-    info(message) {
-        this.logMessage(message, "blue", "info");
+    info(...args) {
+        this.logMessage("blue", "info", ...args);
     }
 }
 
