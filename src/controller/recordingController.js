@@ -60,7 +60,7 @@ class RecordingController {
             const existingRecording = await Recording.findOne({ recordingId: recordingId });
            
             if (!existingRecording || existingRecording.status !== "active") {
-                return res.status(404).json({ message: `No active recording Recording found for ${recordingId}` });
+                return res.status(404).json({ message: `No active recording found for ${recordingId}` });
             }
 
             existingRecording.status = "stopped";
