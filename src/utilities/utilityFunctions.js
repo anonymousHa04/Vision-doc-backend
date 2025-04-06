@@ -19,7 +19,15 @@ class Customlogger {
         const message = args.join(' ');
         const colorCode = this.colors[color] || this.colors.white;
         const timestamp = new Date().toISOString();
-        process.stdout.write(`${colorCode}${status} ${colorCode}${timestamp}${this.colors.reset} - ${message} \n`);
+
+        const formattedMessage = `${colorCode}${status} ${colorCode}${timestamp}${this.colors.reset} - ${message}`;
+        
+        if (process.env.NODE_ENV !== "debug") {
+            console.log(formattedMessage);
+        } else {
+            console.debug(formattedMessage);
+        }
+        
         return;
     }
 

@@ -1,5 +1,5 @@
 const { success, info, errorMessage } = require("../utilities/utilityFunctions");
-const Session = require("../databases/mongoDB/models/sessionSchema");
+const Recording = require("../databases/mongoDB/models/recordingSchema");
 const { v4: uuidv4 } = require("uuid");
 
 // logic for recording controller
@@ -15,29 +15,30 @@ class RecordingController {
         try {
             success("Recording started");
 
-            const userId = req.body.userId || `Guest - ${Date.now()}`; // Use current timestamp as userId if not provided
+            const userId = req?.body?.userId || `Guest - ${Date.now()}`; // Use current timestamp as userId if not provided
 
-            // check if there is aleady a active session in the database
-            const activeSession = await Session.findOne({ userId, status: "active" });
+            // check if there is aleady a active Recording in the database
+            const activeRecording = await Recording.findOne({ userId, status: "active" });
             
-            if (activeSession) {
-                return res.status(400).json({ message: "An active session already exists for this user." });
+            if (activeRecording) {
+                return res.status(400).json({ message: "An active Recording already exists for this user." });
             }
 
-            // create a new session in the database
-            const sessionId = `session-${uuidv4}`;
+            // create a new Recording in the database
+            const recordingId = `Recording-${Date.now()}-${uuidv4()}`; // Generate a unique recording ID using timestamp and UUID
 
-            const newSession = new Session({
+            // TODO: change recordingID for invitining
+            const newRecording = new Recording({
                 userId,
-                sessionId,
+                recordingId,
                 startTime: Date.now(),
                 status: "active",
             });
 
-            await newSession.save();
+            await newRecording.save();
 
-            success(`Revording started for user: ${userId} at session: ${sessionId}`);
-            res.status(200).json({ message: "Recording started" });
+            success(`Recording started for user: ${userId} at Recording: ${recordingId}`);
+            res.status(200).json({ message: "Recording started", recordingId });
         } catch (error) {
             errorMessage("Error starting recording");
             res.status(500).json({
@@ -50,34 +51,37 @@ class RecordingController {
 
     // stop recording
     async stopRecording(req, res) {
-        try {
-            const { sessionId } = req.body;
+        const { RecordingId } = req?.body;
 
-            const session = await Session.findOne({ sessionId });
+        try {
+
+            // const recordID = RecordingId || "Recording-1743947419319-6edb1d1f-6975-4c83-b828-6361cf8af163" // Use a default value if RecordingId is not provided
+            // const existingRecording = await Recording.findOne({ RecordingId });
+            const existingRecording = await Recording.findOne({ recordingId: RecordingId });
            
-            if (!session || session.status !== "active") {
-                return res.status(404).json({ message: "No active recording session found" });
+            if (!existingRecording || existingRecording.status !== "active") {
+                return res.status(404).json({ message: `No active recording Recording found for ${RecordingId}` });
             }
 
-            session.status = "stopped";
-            session.endTime = Date.now();
-            session.duration = session.calculateDuration();
+            existingRecording.status = "stopped";
+            existingRecording.endTime = Date.now();
+            
+            await existingRecording.save();
 
-            await session.save();
-
-            success(`Recording stopped for session: ${sessionId}`);
-            info(`Session duration: ${session.duration} milliseconds`);
+            success(`Recording stopped for Recording: ${RecordingId}`);
+            info(`Recording duration: ${existingRecording.duration} milliseconds`);
 
             // TODO: Call ScreenCaptureService to stop recording
             res.status(200).json({ 
                 message: "Recording stopped successfully!", 
-                session
+                existingRecording
             });
         } catch (err) {
-            errorMessage("Error stopping recording");
+            errorMessage("Error stopping recording", RecordingId);
             res.status(500).json({ 
                 error: "Failed to stop recording", 
-                details: err.message 
+                details: err.message,
+                recordingId: RecordingId
             });
         }
     }

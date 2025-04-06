@@ -4,19 +4,19 @@ const { v4: uuidv4 } = require("uuid");
 const { info } = require("../../../utilities/utilityFunctions");
 
 // Define the session schema
-const sessionSchema = new Schema({
+const recordingSchema = new Schema({
     userId: { // Identifier for the user associated with the session (optional)
         type: String,
     },
-    sessionId: { // Unique identifier for the session
+    recordingId: { // Unique identifier for the session
         type: String,
         default: uuidv4,
         unique: true,
     },
-    recordingId: { // Identifier for the associated recording
-        type: String,
-        required: true,
-    },
+    // sessionID: { // Identifier for the associated recording
+    //     type: String,
+    //     required: true,
+    // },
     startTime: { // Start time of the session
         type: Date,
         default: Date.now,
@@ -38,11 +38,8 @@ const sessionSchema = new Schema({
     }],
 }, { timestamps: true });
 
-const Session = mongoose.model("Session", sessionSchema);
-info("Session model created successfully!");
-
 // duration method to calculate the duration of the session in milliseconds
-sessionSchema.methods.calculateDuration = function () {
+recordingSchema.methods.calculateDuration = function () {
     if (this.endTime) {
         return this.endTime - this.startTime;
     } else {
@@ -51,7 +48,7 @@ sessionSchema.methods.calculateDuration = function () {
 };
 
 // Pre-save hook to calculate duration before saving the session
-sessionSchema.pre("save", function (next) {
+recordingSchema.pre("save", function (next) {
     if (this.isModified("endTime") || this.isNew) {
         this.duration = this.calculateDuration();
     }
@@ -59,8 +56,11 @@ sessionSchema.pre("save", function (next) {
 });
 
 // get sduration in seconds
-sessionSchema.virtual("durationInMinutes").get(function () {
+recordingSchema.virtual("durationInMinutes").get(function () {
     return Math.round(this.duration / 60000);
 });
 
-module.exports = mongoose.model("Session", sessionSchema);
+const RecordingSession = mongoose.model("Recording", recordingSchema);
+info("Session model created successfully!");
+
+module.exports = RecordingSession;
