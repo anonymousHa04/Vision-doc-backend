@@ -39,7 +39,7 @@ class Customlogger {
         this.logMessage("red", "error", ...args);
     }
 
-    waring(...args) {
+    warning(...args) {
         this.logMessage("yellow", "warning", ...args);
     }
 
@@ -54,6 +54,6 @@ const logger = new Customlogger();
 module.exports = {
     success: logger.success.bind(logger),
     errorMessage: logger.error.bind(logger),
-    waring: logger.waring.bind(logger),
+    warning: logger.warning.bind(logger),
     info: logger.info.bind(logger),
 };

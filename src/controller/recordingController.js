@@ -51,13 +51,13 @@ class RecordingController {
 
     // stop recording
     async stopRecording(req, res) {
-        const { RecordingId } = req?.body;
+        const { recordingId } = req?.body;
 
         try {
 
             // const recordID = RecordingId || "Recording-1743947419319-6edb1d1f-6975-4c83-b828-6361cf8af163" // Use a default value if RecordingId is not provided
             // const existingRecording = await Recording.findOne({ RecordingId });
-            const existingRecording = await Recording.findOne({ recordingId: RecordingId });
+            const existingRecording = await Recording.findOne({ recordingId: recordingId });
            
             if (!existingRecording || existingRecording.status !== "active") {
                 return res.status(404).json({ message: `No active recording Recording found for ${RecordingId}` });
