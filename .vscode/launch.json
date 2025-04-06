@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "Launch Server",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/server.js",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node",
+            "envFile": "${workspaceFolder}/src/.env"
+        }
+    ]
+}
