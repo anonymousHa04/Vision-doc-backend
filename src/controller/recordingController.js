@@ -51,16 +51,16 @@ class RecordingController {
 
     // stop recording
     async stopRecording(req, res) {
-        const { RecordingId } = req?.body;
+        const { recordingId } = req?.body;
 
         try {
 
             // const recordID = RecordingId || "Recording-1743947419319-6edb1d1f-6975-4c83-b828-6361cf8af163" // Use a default value if RecordingId is not provided
             // const existingRecording = await Recording.findOne({ RecordingId });
-            const existingRecording = await Recording.findOne({ recordingId: RecordingId });
+            const existingRecording = await Recording.findOne({ recordingId: recordingId });
            
             if (!existingRecording || existingRecording.status !== "active") {
-                return res.status(404).json({ message: `No active recording Recording found for ${RecordingId}` });
+                return res.status(404).json({ message: `No active recording found for ${recordingId}` });
             }
 
             existingRecording.status = "stopped";
@@ -68,7 +68,7 @@ class RecordingController {
             
             await existingRecording.save();
 
-            success(`Recording stopped for Recording: ${RecordingId}`);
+            success(`Recording stopped for Recording: ${recordingId}`);
             info(`Recording duration: ${existingRecording.duration} milliseconds`);
 
             // TODO: Call ScreenCaptureService to stop recording
@@ -77,11 +77,11 @@ class RecordingController {
                 existingRecording
             });
         } catch (err) {
-            errorMessage("Error stopping recording", RecordingId);
+            errorMessage("Error stopping recording", recordingId);
             res.status(500).json({ 
                 error: "Failed to stop recording", 
                 details: err.message,
-                recordingId: RecordingId
+                recordingId: recordingId
             });
         }
     }
