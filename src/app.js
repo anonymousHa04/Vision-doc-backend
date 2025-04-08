@@ -1,6 +1,8 @@
 // express js boiler plate
 const express = require('express');
 const connectDB = require('./databases/mongoDB/config/db');
+require("dotenv").config();
+
 
 const cors = require('cors');
 

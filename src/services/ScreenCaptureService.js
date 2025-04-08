@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+require("dotenv").config();
 
 // screen capture service
 class ScreenCaptureService {
@@ -31,6 +32,32 @@ class ScreenCaptureService {
     }
 
     // delete screenshots older than 2 minutes
-    
+    cleanupOldScreenshots(sessionId) {
+        const sessionPath = path.join(__dirname, "../tempScreens", sessionId);
+        const now = Date.now();
+        const files = fs.readdirSync(sessionPath);
+
+        /* 
+        files to be delted
+            1. check for files which are not important 
+            2. check for files which are older than 2 minutes
+        */
+
+        files.forEach(file => {
+            if (file.includes('important')) return; // skip important files
+
+            const filePath = path.join(sessionPath, file);
+            const [timestampStr] = file.split('-');
+            const timestamp = parseInt(timestampStr, 10);
+
+            const fileAge = now - timestamp;
+            if (fileAge > process.env.deletionTime) { // older than 2 minutes
+                fs.unlinkSync(filePath);
+            }
+        });
+    }
+
 
 }
+
+module.exports = new ScreenCaptureService();
