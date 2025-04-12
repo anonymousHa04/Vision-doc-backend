@@ -1,12 +1,16 @@
 const fs = require('fs');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const util = require('util');
+const execAsync = util.promisify(require('child_process').exec);
+const { success, errorMessage } = require("../utils/logger");
 require("dotenv").config();
 
 // screen capture service
 class ScreenCaptureService {
-    constructor() {
+    constructor(captureBinaryPath) {
         this.screenshotInterval = null;
+        this.captureBinaryPath = captureBinaryPath;
+        this.screenshotDir = path.join(__dirname, '../tempscreens');
     }
 
     // create session folder in temp directory
@@ -23,12 +27,25 @@ class ScreenCaptureService {
         const timestamp = Date.now();
         const suffix = isImportant ? 'important' : 'screenshot';
         const screenshotName = `${suffix}-${timestamp}.png`;
-        const screenshotPath = path.join(__dirname, '../tempscreens', sessionId, screenshotName);
 
-        // TODO: Replace this with actual screenshot logic
-        fs.writeFileSync(screenshotPath, "dummy_screenshot_data");
+        const sessionDir = path.join(this.screenshotDir)
+        const screenshotPath = path.join(sessionDir, screenshotName);
 
-        return screenshotPath;
+        // Ensure the session folder exists
+        if (!fs.existsSync(sessionDir)) {
+            fs.mkdirSync(sessionDir, { recursive: true });
+        }
+
+        const command = `${this.captureBinaryPath} ${screenshotPath}`;
+
+        try {
+            await execAsync(command, { timeout: 5000 });
+            success(`Screenshot captured: ${screenshotPath}`);
+            return screenshotPath;
+        } catch (error) {
+            errorMessage(`Error capturing screenshot: ${error.message}`);
+            throw error;
+        }
     }
 
     // delete screenshots older than 2 minutes
@@ -57,7 +74,35 @@ class ScreenCaptureService {
         });
     }
 
+    startPerodicScreenshotCapture(sessionId, interval = 2000) {
+        if (!sessionId) {
+            errorMessage("Session ID is required to start periodic screenshot capture.");
+            throw new Error("Session ID is required.");
+        }
+        if (this.screenshotInterval) {
+            clearInterval(this.screenshotInterval);
+        }
 
+        this.initSessionFolder(sessionId); // Ensure the session folder exists
+
+        this.screenshotInterval = setInterval(() => {
+            this.captureScreenshot(sessionId)
+                .then(() => this.cleanupOldScreenshots(sessionId))
+                .catch(error => errorMessage(`Error capturing screenshot: ${error.message}`));
+        }, interval);
+
+        success(`Started periodic screenshot capture every ${interval} ms for session: ${sessionId}`);
+    }
+
+    stopPeriodicScreenshotCapture() {
+        if (this.screenshotInterval) {
+            clearInterval(this.screenshotInterval);
+            this.screenshotInterval = null;
+            success("Stopped periodic screenshot capture.");
+        } else {
+            errorMessage("No periodic screenshot capture to stop.");
+        }
+    }
 }
 
 module.exports = new ScreenCaptureService();
